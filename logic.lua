@@ -9,14 +9,16 @@ function Set.new(t)
     return set
 end
 
-function Set.union(a,b)
+-- this was Set.union
+function Set.mt.__add(a,b)
     local res = Set.new{}
     for k in pairs(a) do res[k] = true end
     for k in pairs(b) do res[k] = true end
     return res
 end
 
-function Set.intersection(a,b)
+-- this was Set.intersection
+function Set.mt.__mul(a,b)
     local res = Set.new{}
     for k in pairs(a) do
         res[k] = b[k]
@@ -24,7 +26,8 @@ function Set.intersection(a,b)
     return res
 end
 
-function Set.xor(a,b)
+-- this was Set.xor
+function Set.mt.__div(a,b)
     local res = Set.new{}
     for k in pairs(a) do
         if not b[k] then
@@ -39,37 +42,23 @@ function Set.xor(a,b)
     return res
 end
 
-function Set.tostring(set)
+function Set.mt.__tostring(set)
     local s = "{"
     local sep = " "
     for e in pairs(set) do
         s = s .. sep .. e
         sep = ", "
     end
-    return s .. "}"
+    return s .. " }"
 end
-
-function Set.print(s)
-    print(Set.tostring(s))
-end
-
-Set.mt.__add = Set.union
-Set.mt.__mul = Set.intersection
-Set.mt.__div = Set.xor
-
-
-
-
-
-
 
 
 s1 = Set.new({10, 20, 30, 50})
 s2 = Set.new({30, 1})
-Set.print(s1)
-Set.print(s2)
+print(s1)
+print(s2)
 s3 = s1 + s2
-Set.print(s3)
-Set.print(s3*s1*s2)
-Set.print(s1/s2)
+print(s3)
+print(s3*s1*s2)
+print(s1/s2)
 
