@@ -84,6 +84,48 @@ end
 
 
 
+World = {}
+
+-- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
+World.tags = {}
+
+-- ipairs, indices -> objects
+World.objects = {}
+
+-- for bidirectional completeness
+-- objects -> indices
+World.indices = {}
+
+-- add tags for a given id
+-- warning: it is not checked if object with id actually exists
+function World.add_tags_for_id(id, ...)
+    for _,tag in ipairs(arg) do
+        id_set = World.tags[tag] or Set.new{}
+        id_set += Set.new{object_id}
+        World.tags[tag] = id_set
+    end
+end    
+
+-- add a table/object to the world, with an arbitrary number of tags
+function World.add_object_to_tags(t, ...)
+    -- add object to world
+    table.insert(World.objects, t)
+    -- new World.objects table length is new object ID, equals its index
+    object_id = # World.objects
+    -- store index
+    World.indices[t] = object_id
+    -- add any tags which might have been specified to the world
+    World.add_tags_for_id(object_id, unpack(arg))
+end
+
+-- add (additional) tags to object
+function World.add_tags_to_object(t, ...)
+    object_id = World.indices[t]
+    World.add_tags_for_id(object_id)
+end
+
+
+
 s1 = Set.new({10, 20, 30, 50})
 s2 = Set.new({30, 1})
 print(s1)
