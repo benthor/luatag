@@ -87,23 +87,8 @@ function set_test()
     print(s1 * s2)
 end
 
--- TaOb => shorthand for TaggedObject
-TaOb = {}
-
-TaOb.mt = {}
-
-function TaOb.new(URL, tags)
-    taob = {}
-    setmetatable(taob, TaOb.mt)
-    taob.tags = tags
-    taob.URL = URL
-    return taob
-end
-
-
 
 -- the heart of the tagging system
-
 World = {}
 
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
@@ -163,6 +148,10 @@ function World.limit_to_tags(...)
         res = res * id_set
     end
     return res
+end
+
+function World.all_tags_of_id(id)
+    -- TODO
 end
 
 
