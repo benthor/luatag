@@ -42,6 +42,11 @@ function Set.mt.__div(a,b)
     return res
 end
 
+-- return set a minus all elements it shared with b
+function Set.mt.__sub(a,b)
+    return a / (b * a)
+end
+
 function Set.mt.__le(a, b)
     for k in pairs(a) do
         if not b[k] then
@@ -72,7 +77,7 @@ end
 function set_test()
     s1 = Set.new({10, 20, 30, 50})
     s2 = Set.new({30, 1})
-    print(s1)
+    print(s1-s2)
     print(s2)
     s3 = s1 + s2
     print(s3)
@@ -86,7 +91,6 @@ function set_test()
     print(s1)
     print(s1 * s2)
 end
-
 
 -- the heart of the tagging system
 World = {}
