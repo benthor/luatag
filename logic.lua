@@ -109,8 +109,8 @@ World = {}
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
 World.tags = {}
 
--- a set of all tags as seen in the world
-World.tagset = Set.new{}
+-- a set of all object indices as seen in the world
+World.all_indices = Set.new{}
 
 -- ipairs, indices -> objects
 World.objects = {}
@@ -126,13 +126,13 @@ function World.add_tags_for_id(id, ...)
         error("should define at least one tag for now, the system currently doesn't handle untagged objects very well")
     end
     for _,tag in ipairs(arg) do
-        id_set = World.tags[tag] or Set.new{}
-        id_set = id_set + Set.new{object_id}
+        local id_set = World.tags[tag] or Set.new{}
+        id_set = id_set + Set.new{id}
         World.tags[tag] = id_set
-        -- also add all tags to the world
-        -- FIXME there is some redundancy here. Room for optimization
-        World.tagset = World.tagset + id_set
     end
+    -- also add id to world object indices list
+    -- FIXME room for optimization, we don't need to always do this
+    World.all_indices = World.all_indices + Set.new{id}
 end    
 
 -- add a table/object to the world, with an arbitrary number of tags
@@ -140,7 +140,7 @@ function World.add_object_to_tags(t, ...)
     -- add object to world
     table.insert(World.objects, t)
     -- new World.objects table length is new object ID, equals its index
-    object_id = # World.objects
+    local object_id = # World.objects
     -- store index
     World.indices[t] = object_id
     -- add any tags which might have been specified to the world
@@ -150,12 +150,13 @@ end
 -- add (additional) tags to object
 function World.add_tags_to_object(t, ...)
     local object_id = World.indices[t]
-    World.add_tags_for_id(object_id)
+    print(object_id)
+    World.add_tags_for_id(object_id, unpack(arg))
 end
 
 -- return a Set of those object indices which share the specified tags
 function World.limit_to_tags(...)
-    local res = World.tagset
+    local res = World.all_indices
     for _,tag in ipairs(arg) do
         -- protect against bogus tags
         id_set = World.tags[tag] or Set.new{}
@@ -184,6 +185,12 @@ dbgfnc(World.limit_to_tags, "foo", "1, 2")
 dbgfnc(World.limit_to_tags, "eggs", "2, 3")
 dbgfnc(World.limit_to_tags, "nothing", "{ }")
 dbgfnc(World.limit_to_tags, nil, "{1, 2, 3}")
+
+print(World.limit_to_tags("foo", "spam"))
+
+World.add_tags_to_object(t1, "spam")
+
+print(World.limit_to_tags("foo", "spam"))
 
 
 
