@@ -42,6 +42,23 @@ function Set.mt.__div(a,b)
     return res
 end
 
+function Set.mt.__le(a, b)
+    for k in pairs(a) do
+        if not b[k] then
+            return false
+        end
+    end
+    return true
+end
+
+function Set.mt.__lt(a,b)
+    return a <= b and not (b <= a)
+end
+
+function Set.mt.__eq(a,b)
+    return a <= b and b <= a
+end
+
 function Set.mt.__tostring(set)
     local s = "{"
     local sep = " "
@@ -53,6 +70,8 @@ function Set.mt.__tostring(set)
 end
 
 
+
+
 s1 = Set.new({10, 20, 30, 50})
 s2 = Set.new({30, 1})
 print(s1)
@@ -61,4 +80,11 @@ s3 = s1 + s2
 print(s3)
 print(s3*s1*s2)
 print(s1/s2)
+
+s1 = Set.new{2,4}
+s2 = Set.new{2,10,4}
+
+print(s1 == s2 * s1)
+print(s1)
+print(s1 * s2)
 
