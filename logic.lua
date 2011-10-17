@@ -122,6 +122,9 @@ World.indices = {}
 -- add tags for a given id
 -- warning: it is not checked if object with id actually exists
 function World.add_tags_for_id(id, ...)
+    if # arg == 0 then
+        error("should define at least one tag for now, the system currently doesn't handle untagged objects very well")
+    end
     for _,tag in ipairs(arg) do
         id_set = World.tags[tag] or Set.new{}
         id_set = id_set + Set.new{object_id}
@@ -174,11 +177,14 @@ t4 = {"nothing"}
 World.add_object_to_tags(t1, "foo", "bar")
 World.add_object_to_tags(t2, "bar", "foo", "spam", "eggs")
 World.add_object_to_tags(t3, "spam", "eggs")
-World.add_object_to_tags(t4)
+-- disabled, doesn't work for now
+-- World.add_object_to_tags(t4)
 
 dbgfnc(World.limit_to_tags, "foo", "1, 2")
 dbgfnc(World.limit_to_tags, "eggs", "2, 3")
 dbgfnc(World.limit_to_tags, "nothing", "{ }")
-dbgfnc(World.limit_to_tags, nil, "{1, 2, 3, 4} -> oh crap!")
+dbgfnc(World.limit_to_tags, nil, "{1, 2, 3}")
+
+
 
 
