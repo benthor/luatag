@@ -69,6 +69,24 @@ function Set.mt.__tostring(set)
     return s .. " }"
 end
 
+function set_test()
+    s1 = Set.new({10, 20, 30, 50})
+    s2 = Set.new({30, 1})
+    print(s1)
+    print(s2)
+    s3 = s1 + s2
+    print(s3)
+    print(s3*s1*s2)
+    print(s1/s2)
+
+    s1 = Set.new{2,4}
+    s2 = Set.new{2,10,4}
+
+    print(s1 == s2 * s1)
+    print(s1)
+    print(s1 * s2)
+end
+
 -- TaOb => shorthand for TaggedObject
 TaOb = {}
 
@@ -91,6 +109,9 @@ World = {}
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
 World.tags = {}
 
+-- a set of all tags as seen in the world
+World.tagset = Set.new{}
+
 -- ipairs, indices -> objects
 World.objects = {}
 
@@ -105,6 +126,9 @@ function World.add_tags_for_id(id, ...)
         id_set = World.tags[tag] or Set.new{}
         id_set = id_set + Set.new{object_id}
         World.tags[tag] = id_set
+        -- also add all tags to the world
+        -- FIXME there is some redundancy here. Room for optimization
+        World.tagset = World.tagset + id_set
     end
 end    
 
@@ -122,40 +146,39 @@ end
 
 -- add (additional) tags to object
 function World.add_tags_to_object(t, ...)
-    object_id = World.indices[t]
+    local object_id = World.indices[t]
     World.add_tags_for_id(object_id)
 end
 
 -- return a Set of those object indices which share the specified tags
 function World.limit_to_tags(...)
-    res = false
+    local res = World.tagset
     for _,tag in ipairs(arg) do
-        id_set = World.tags[tag]
-        if res then
-            res = res * id_set
-        else
-            res = id_set
-        end
+        -- protect against bogus tags
+        id_set = World.tags[tag] or Set.new{}
+        res = res * id_set
     end
     return res
 end
 
 
+function dbgfnc(func, input, expected_output)
+    print("input: " .. tostring(input) .. " -> expected output: " .. expected_output .. " -> result: " .. tostring(func(input)))
+end
 
+t1 = {"foobar"}
+t2 = {"barfoospameggs"}
+t3 = {"spameggs"}
+t4 = {"nothing"}
 
-s1 = Set.new({10, 20, 30, 50})
-s2 = Set.new({30, 1})
-print(s1)
-print(s2)
-s3 = s1 + s2
-print(s3)
-print(s3*s1*s2)
-print(s1/s2)
+World.add_object_to_tags(t1, "foo", "bar")
+World.add_object_to_tags(t2, "bar", "foo", "spam", "eggs")
+World.add_object_to_tags(t3, "spam", "eggs")
+World.add_object_to_tags(t4)
 
-s1 = Set.new{2,4}
-s2 = Set.new{2,10,4}
+dbgfnc(World.limit_to_tags, "foo", "1, 2")
+dbgfnc(World.limit_to_tags, "eggs", "2, 3")
+dbgfnc(World.limit_to_tags, "nothing", "{ }")
+dbgfnc(World.limit_to_tags, nil, "{1, 2, 3, 4} -> oh crap!")
 
-print(s1 == s2 * s1)
-print(s1)
-print(s1 * s2)
 
