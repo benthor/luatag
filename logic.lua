@@ -69,6 +69,18 @@ function Set.mt.__tostring(set)
     return s .. " }"
 end
 
+-- TaOb => shorthand for TaggedObject
+TaOb = {}
+
+TaOb.mt = {}
+
+function TaOb.new(URL, tags)
+    taob = {}
+    setmetatable(taob, TaOb.mt)
+    taob.tags = tags
+    taob.URL = URL
+    return taob
+end
 
 
 
