@@ -84,6 +84,8 @@ end
 
 
 
+-- the heart of the tagging system
+
 World = {}
 
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
@@ -101,7 +103,7 @@ World.indices = {}
 function World.add_tags_for_id(id, ...)
     for _,tag in ipairs(arg) do
         id_set = World.tags[tag] or Set.new{}
-        id_set += Set.new{object_id}
+        id_set = id_set + Set.new{object_id}
         World.tags[tag] = id_set
     end
 end    
@@ -123,6 +125,21 @@ function World.add_tags_to_object(t, ...)
     object_id = World.indices[t]
     World.add_tags_for_id(object_id)
 end
+
+-- return a Set of those object indices which share the specified tags
+function World.limit_to_tags(...)
+    res = false
+    for _,tag in ipairs(arg) do
+        id_set = World.tags[tag]
+        if res then
+            res = res * id_set
+        else
+            res = id_set
+        end
+    end
+    return res
+end
+
 
 
 
