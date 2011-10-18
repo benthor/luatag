@@ -101,12 +101,16 @@ World.tags = {}
 -- a set of all object indices as seen in the world
 World.all_indices = Set.new{}
 
--- ipairs, indices -> objects
+-- ipairs, index -> object
 World.objects = {}
 
 -- for bidirectional completeness
--- objects -> indices
+-- object -> index
 World.indices = {}
+
+-- for bidirectional completeness
+-- object_id -> tagset
+World.tagsets = Set.new{}
 
 -- add tags for a given id
 -- warning: it is not checked if object with id actually exists
@@ -116,12 +120,16 @@ function World.add_tags_for_id(id, ...)
     end
     for _,tag in ipairs(arg) do
         local id_set = World.tags[tag] or Set.new{}
-        id_set = id_set + Set.new{id}
+        id_set = id_set + Set.new({id})
         World.tags[tag] = id_set
     end
     -- also add id to world object indices list
     -- FIXME room for optimization, we don't need to always do this
-    World.all_indices = World.all_indices + Set.new{id}
+    World.all_indices = World.all_indices + Set.new({id})
+    -- finally, store the tagset indexed by object id
+    tagset = World.tagsets[id] or Set.new({})
+    tagset = tagset + Set.new(arg)
+    World.tagsets[id] = tagset
 end    
 
 -- add a table/object to the world, with an arbitrary number of tags
@@ -155,7 +163,7 @@ function World.limit_to_tags(...)
 end
 
 function World.all_tags_of_id(id)
-    -- TODO
+    return World.tagsets[id]
 end
 
 
@@ -186,5 +194,6 @@ World.add_tags_to_object(t1, "spam")
 print(World.limit_to_tags("foo", "spam"))
 
 
+print(World.tagsets[1])
 
 
