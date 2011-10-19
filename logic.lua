@@ -42,6 +42,22 @@ function NameSpace:_tag_id(id, ...)
     self.DB.tagsets[id] = tagset
 end    
 
+function NameSpace:_untag_id(id, ...)
+    if # arg == 0 then
+        error("should at least define one tag to remove, I am very pedantic about this")
+    end
+    for _,tag in ipairs(arg) do
+        local id_set = self.DB.tags[tag] or error("tag "..tag.." doesn't exist in DB")
+        id_set = id_set - Set.new({id})
+        self.DB.tags[tag] = id_set
+    end
+    -- TODO, need to check if that tag was globally the last and remove it entirely
+    -- TODO, need to check if that tag was the last of the object, garbage collect?
+    tagset = self.DB.tagsets[id] or error("possibly corrupt namespace, id not found in tagsets")
+    tagset = tagset - Set.new(arg)
+    self.DB.tagsets[id] = tagset
+end
+
 -- add a table/object to the world, with an arbitrary number of tags
 function NameSpace:add(t, ...)
     -- add object to world
@@ -54,15 +70,26 @@ function NameSpace:add(t, ...)
     NameSpace:_tag_id(object_id, unpack(arg))
 end
 
--- add (additional) tags to object
+-- add additional tags to object
 function NameSpace:add_tags(t, ...)
     local object_id = self.DB.indices[t]
-    print(object_id)
+    if not object_id then
+        error("can't add tags to unknown object")
+    end
     NameSpace:_tag_id(object_id, unpack(arg))
 end
 
+function NameSpace:remove_tags(t, ...)
+    local object_id = self.DB.indices[t]
+    if not object_id then
+        error("can't remove tags from unknown object")
+    end
+    NameSpace:_untag_id(object_id, unpack(arg))
+end
+ 
+
 -- return a Set of those object indices which share the specified tags
-function NameSpace:get(...)
+function NameSpace:_get_ids(...)
     local res = self.DB.all_indices
     for _,tag in ipairs(arg) do
         -- protect against bogus tags
@@ -71,6 +98,16 @@ function NameSpace:get(...)
     end
     return res
 end
+
+function NameSpace:get(...)
+    local ids = NameSpace:_get_ids(unpack(arg))
+    local res = {}
+    for id in pairs(ids) do
+        table.insert(res,self.DB.objects[id])
+    end
+    return res
+end
+
 
 function NameSpace:get_tags(t)
     id = self.DB.indices[t]
