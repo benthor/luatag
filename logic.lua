@@ -164,12 +164,9 @@ function NS:get(...)
     return res
 end
 
-function NS:all_tags_of_id(id)
-    return NS.tagsets[id]
-end
-
-function NS:list(...)
-    return NS.get(unpack(arg))
+function NS:get_tags(t)
+    id = self.DB.indices[t]
+    return self.DB.tagsets[id]
 end
 
 function NS_test()
