@@ -169,32 +169,4 @@ function NameSpace:get_tags(t)
     return self.DB.tagsets[id]
 end
 
-function NameSpace_test()
-    ns = NameSpace
-    function dbgfnc(func, input, expected_output)
-        print("input: " .. tostring(input) .. " -> expected output: " .. expected_output .. " -> result: " .. tostring(func(input)))
-    end
-
-    t1 = {"foobar"}
-    t2 = {"barfoospameggs"}
-    t3 = {"spameggs"}
-    t4 = {"nothing"}
-
-    ns:add(t1, "foo", "bar")
-    ns:add(t2, "bar", "foo", "spam", "eggs")
-    ns:add(t3, "spam", "eggs")
-    -- disabled, doesn't work for now
-    -- ns.add_object_to_tags(t4)
-
-    print(ns:get("foo"))
-    print("1, 2")
-
-    print(ns:get("foo", "spam"))
-
-    ns:add_tags(t1, "spam")
-
-    print(ns:get("foo", "spam"))
-    print(ns.DB.tagsets[1])
-end
-
-NameSpace_test()
+return NameSpace
