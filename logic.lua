@@ -93,77 +93,77 @@ function set_test()
 end
 
 -- the heart of the tagging system
-World = {}
+NS = {}
 
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
-World.tags = {}
+NS.tags = {}
 
 -- a set of all object indices as seen in the world
-World.all_indices = Set.new{}
+NS.all_indices = Set.new{}
 
 -- ipairs, index -> object
-World.objects = {}
+NS.objects = {}
 
 -- for bidirectional completeness
 -- object -> index
-World.indices = {}
+NS.indices = {}
 
 -- for bidirectional completeness
 -- object_id -> tagset
-World.tagsets = Set.new{}
+NS.tagsets = Set.new{}
 
 -- add tags for a given id
 -- warning: it is not checked if object with id actually exists
-function World.add_tags_for_id(id, ...)
+function NS.add_tags_for_id(id, ...)
     if # arg == 0 then
         error("should define at least one tag for now, the system currently doesn't handle untagged objects very well")
     end
     for _,tag in ipairs(arg) do
-        local id_set = World.tags[tag] or Set.new{}
+        local id_set = NS.tags[tag] or Set.new{}
         id_set = id_set + Set.new({id})
-        World.tags[tag] = id_set
+        NS.tags[tag] = id_set
     end
     -- also add id to world object indices list
     -- FIXME room for optimization, we don't need to always do this
-    World.all_indices = World.all_indices + Set.new({id})
+    NS.all_indices = NS.all_indices + Set.new({id})
     -- finally, store the tagset indexed by object id
-    tagset = World.tagsets[id] or Set.new({})
+    tagset = NS.tagsets[id] or Set.new({})
     tagset = tagset + Set.new(arg)
-    World.tagsets[id] = tagset
+    NS.tagsets[id] = tagset
 end    
 
 -- add a table/object to the world, with an arbitrary number of tags
-function World.add_object_to_tags(t, ...)
+function NS.add_object_to_tags(t, ...)
     -- add object to world
-    table.insert(World.objects, t)
-    -- new World.objects table length is new object ID, equals its index
-    local object_id = # World.objects
+    table.insert(NS.objects, t)
+    -- new NS.objects table length is new object ID, equals its index
+    local object_id = # NS.objects
     -- store index
-    World.indices[t] = object_id
+    NS.indices[t] = object_id
     -- add any tags which might have been specified to the world
-    World.add_tags_for_id(object_id, unpack(arg))
+    NS.add_tags_for_id(object_id, unpack(arg))
 end
 
 -- add (additional) tags to object
-function World.add_tags_to_object(t, ...)
-    local object_id = World.indices[t]
+function NS.add_tags_to_object(t, ...)
+    local object_id = NS.indices[t]
     print(object_id)
-    World.add_tags_for_id(object_id, unpack(arg))
+    NS.add_tags_for_id(object_id, unpack(arg))
 end
 
 -- return a Set of those object indices which share the specified tags
-function World.limit_to_tags(...)
-    local res = World.all_indices
+function NS.limit_to_tags(...)
+    local res = NS.all_indices
     for _,tag in ipairs(arg) do
         -- protect against bogus tags
-        id_set = World.tags[tag] or Set.new{}
+        id_set = NS.tags[tag] or Set.new{}
         res = res * id_set
     end
     return res
 end
 
-function World.all_tags_of_id(id)
-    return World.tagsets[id]
+function NS.all_tags_of_id(id)
+    return NS.tagsets[id]
 end
 
 
@@ -176,24 +176,24 @@ t2 = {"barfoospameggs"}
 t3 = {"spameggs"}
 t4 = {"nothing"}
 
-World.add_object_to_tags(t1, "foo", "bar")
-World.add_object_to_tags(t2, "bar", "foo", "spam", "eggs")
-World.add_object_to_tags(t3, "spam", "eggs")
+NS.add_object_to_tags(t1, "foo", "bar")
+NS.add_object_to_tags(t2, "bar", "foo", "spam", "eggs")
+NS.add_object_to_tags(t3, "spam", "eggs")
 -- disabled, doesn't work for now
--- World.add_object_to_tags(t4)
+-- NS.add_object_to_tags(t4)
 
-dbgfnc(World.limit_to_tags, "foo", "1, 2")
-dbgfnc(World.limit_to_tags, "eggs", "2, 3")
-dbgfnc(World.limit_to_tags, "nothing", "{ }")
-dbgfnc(World.limit_to_tags, nil, "{1, 2, 3}")
+dbgfnc(NS.limit_to_tags, "foo", "1, 2")
+dbgfnc(NS.limit_to_tags, "eggs", "2, 3")
+dbgfnc(NS.limit_to_tags, "nothing", "{ }")
+dbgfnc(NS.limit_to_tags, nil, "{1, 2, 3}")
 
-print(World.limit_to_tags("foo", "spam"))
+print(NS.limit_to_tags("foo", "spam"))
 
-World.add_tags_to_object(t1, "spam")
+NS.add_tags_to_object(t1, "spam")
 
-print(World.limit_to_tags("foo", "spam"))
+print(NS.limit_to_tags("foo", "spam"))
 
 
-print(World.tagsets[1])
+print(NS.tagsets[1])
 
 
