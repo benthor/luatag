@@ -95,105 +95,109 @@ end
 -- the heart of the tagging system
 NS = {}
 
+NS.DB = {}
+
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
-NS.tags = {}
+NS.DB.tags = {}
 
 -- a set of all object indices as seen in the world
-NS.all_indices = Set.new{}
+NS.DB.all_indices = Set.new{}
 
 -- ipairs, index -> object
-NS.objects = {}
+NS.DB.objects = {}
 
 -- for bidirectional completeness
 -- object -> index
-NS.indices = {}
+NS.DB.indices = {}
 
 -- for bidirectional completeness
 -- object_id -> tagset
-NS.tagsets = Set.new{}
+NS.DB.tagsets = Set.new{}
 
 -- add tags for a given id
 -- warning: it is not checked if object with id actually exists
-function NS.add_tags_for_id(id, ...)
+function NS:_tag_id(id, ...)
     if # arg == 0 then
         error("should define at least one tag for now, the system currently doesn't handle untagged objects very well")
     end
     for _,tag in ipairs(arg) do
-        local id_set = NS.tags[tag] or Set.new{}
+        local id_set = self.DB.tags[tag] or Set.new{}
         id_set = id_set + Set.new({id})
-        NS.tags[tag] = id_set
+        self.DB.tags[tag] = id_set
     end
     -- also add id to world object indices list
     -- FIXME room for optimization, we don't need to always do this
-    NS.all_indices = NS.all_indices + Set.new({id})
+    self.DB.all_indices = self.DB.all_indices + Set.new({id})
     -- finally, store the tagset indexed by object id
-    tagset = NS.tagsets[id] or Set.new({})
+    tagset = self.DB.tagsets[id] or Set.new({})
     tagset = tagset + Set.new(arg)
-    NS.tagsets[id] = tagset
+    self.DB.tagsets[id] = tagset
 end    
 
 -- add a table/object to the world, with an arbitrary number of tags
-function NS.add_object_to_tags(t, ...)
+function NS:add(t, ...)
     -- add object to world
-    table.insert(NS.objects, t)
-    -- new NS.objects table length is new object ID, equals its index
-    local object_id = # NS.objects
+    table.insert(self.DB.objects, t)
+    -- new DB.objects table length is new object ID, equals its index
+    local object_id = # self.DB.objects
     -- store index
-    NS.indices[t] = object_id
+    self.DB.indices[t] = object_id
     -- add any tags which might have been specified to the world
-    NS.add_tags_for_id(object_id, unpack(arg))
+    NS:_tag_id(object_id, unpack(arg))
 end
 
 -- add (additional) tags to object
-function NS.add_tags_to_object(t, ...)
-    local object_id = NS.indices[t]
+function NS:add_tags(t, ...)
+    local object_id = self.DB.indices[t]
     print(object_id)
-    NS.add_tags_for_id(object_id, unpack(arg))
+    NS:_tag_id(object_id, unpack(arg))
 end
 
 -- return a Set of those object indices which share the specified tags
-function NS.limit_to_tags(...)
-    local res = NS.all_indices
+function NS:get(...)
+    local res = self.DB.all_indices
     for _,tag in ipairs(arg) do
         -- protect against bogus tags
-        id_set = NS.tags[tag] or Set.new{}
+        id_set = self.DB.tags[tag] or Set.new{}
         res = res * id_set
     end
     return res
 end
 
-function NS.all_tags_of_id(id)
+function NS:all_tags_of_id(id)
     return NS.tagsets[id]
 end
 
-
-function dbgfnc(func, input, expected_output)
-    print("input: " .. tostring(input) .. " -> expected output: " .. expected_output .. " -> result: " .. tostring(func(input)))
+function NS:list(...)
+    return NS.get(unpack(arg))
 end
 
-t1 = {"foobar"}
-t2 = {"barfoospameggs"}
-t3 = {"spameggs"}
-t4 = {"nothing"}
+function NS_test()
+    ns = NS
+    function dbgfnc(func, input, expected_output)
+        print("input: " .. tostring(input) .. " -> expected output: " .. expected_output .. " -> result: " .. tostring(func(input)))
+    end
 
-NS.add_object_to_tags(t1, "foo", "bar")
-NS.add_object_to_tags(t2, "bar", "foo", "spam", "eggs")
-NS.add_object_to_tags(t3, "spam", "eggs")
--- disabled, doesn't work for now
--- NS.add_object_to_tags(t4)
+    t1 = {"foobar"}
+    t2 = {"barfoospameggs"}
+    t3 = {"spameggs"}
+    t4 = {"nothing"}
 
-dbgfnc(NS.limit_to_tags, "foo", "1, 2")
-dbgfnc(NS.limit_to_tags, "eggs", "2, 3")
-dbgfnc(NS.limit_to_tags, "nothing", "{ }")
-dbgfnc(NS.limit_to_tags, nil, "{1, 2, 3}")
+    ns:add(t1, "foo", "bar")
+    ns:add(t2, "bar", "foo", "spam", "eggs")
+    ns:add(t3, "spam", "eggs")
+    -- disabled, doesn't work for now
+    -- ns.add_object_to_tags(t4)
 
-print(NS.limit_to_tags("foo", "spam"))
+    print(ns:get("foo"))
+    print("1, 2")
 
-NS.add_tags_to_object(t1, "spam")
+    print(ns:get("foo", "spam"))
 
-print(NS.limit_to_tags("foo", "spam"))
+    ns:add_tags(t1, "spam")
 
+    print(ns:get("foo", "spam"))
+    print(ns.DB.tagsets[1])
+end
 
-print(NS.tagsets[1])
-
-
+NS_test()
