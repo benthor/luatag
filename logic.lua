@@ -93,30 +93,30 @@ function set_test()
 end
 
 -- the heart of the tagging system
-NS = {}
+NameSpace = {}
 
-NS.DB = {}
+NameSpace.DB = {}
 
 -- tags as k,v pairs, k -> tag, v -> a set of object indices, see below
-NS.DB.tags = {}
+NameSpace.DB.tags = {}
 
 -- a set of all object indices as seen in the world
-NS.DB.all_indices = Set.new{}
+NameSpace.DB.all_indices = Set.new{}
 
 -- ipairs, index -> object
-NS.DB.objects = {}
+NameSpace.DB.objects = {}
 
 -- for bidirectional completeness
 -- object -> index
-NS.DB.indices = {}
+NameSpace.DB.indices = {}
 
 -- for bidirectional completeness
 -- object_id -> tagset
-NS.DB.tagsets = Set.new{}
+NameSpace.DB.tagsets = Set.new{}
 
 -- add tags for a given id
 -- warning: it is not checked if object with id actually exists
-function NS:_tag_id(id, ...)
+function NameSpace:_tag_id(id, ...)
     if # arg == 0 then
         error("should define at least one tag for now, the system currently doesn't handle untagged objects very well")
     end
@@ -135,7 +135,7 @@ function NS:_tag_id(id, ...)
 end    
 
 -- add a table/object to the world, with an arbitrary number of tags
-function NS:add(t, ...)
+function NameSpace:add(t, ...)
     -- add object to world
     table.insert(self.DB.objects, t)
     -- new DB.objects table length is new object ID, equals its index
@@ -143,18 +143,18 @@ function NS:add(t, ...)
     -- store index
     self.DB.indices[t] = object_id
     -- add any tags which might have been specified to the world
-    NS:_tag_id(object_id, unpack(arg))
+    NameSpace:_tag_id(object_id, unpack(arg))
 end
 
 -- add (additional) tags to object
-function NS:add_tags(t, ...)
+function NameSpace:add_tags(t, ...)
     local object_id = self.DB.indices[t]
     print(object_id)
-    NS:_tag_id(object_id, unpack(arg))
+    NameSpace:_tag_id(object_id, unpack(arg))
 end
 
 -- return a Set of those object indices which share the specified tags
-function NS:get(...)
+function NameSpace:get(...)
     local res = self.DB.all_indices
     for _,tag in ipairs(arg) do
         -- protect against bogus tags
@@ -164,13 +164,13 @@ function NS:get(...)
     return res
 end
 
-function NS:get_tags(t)
+function NameSpace:get_tags(t)
     id = self.DB.indices[t]
     return self.DB.tagsets[id]
 end
 
-function NS_test()
-    ns = NS
+function NameSpace_test()
+    ns = NameSpace
     function dbgfnc(func, input, expected_output)
         print("input: " .. tostring(input) .. " -> expected output: " .. expected_output .. " -> result: " .. tostring(func(input)))
     end
@@ -197,4 +197,4 @@ function NS_test()
     print(ns.DB.tagsets[1])
 end
 
-NS_test()
+NameSpace_test()
